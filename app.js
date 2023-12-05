@@ -40,7 +40,7 @@ const hasStatusProperty = (requestQuery) => {
   return requestQuery.status !== undefined;
 };
 
-app.get("/todo", async (request, response) => {
+app.get("/todos/", async (request, response) => {
   let data = null;
   let getToDosQuery = "";
   const { search_q = "", priority, status } = request.query;
@@ -49,7 +49,7 @@ app.get("/todo", async (request, response) => {
     case hasPriorityAndStatusProperties(request.query):
       getToDosQuery = `
           SELECT * FROM todo WHERE 
-          todo Like '%${search_q}%'
+          todo LIKE '%${search_q}%'
           AND status = '${status}'
           AND priority = '${priority}';
           `;
@@ -57,17 +57,27 @@ app.get("/todo", async (request, response) => {
     case hasPriorityProperty(request.query):
       getToDosQuery = `
           SELECT * FROM todo WHERE 
-          todo Like '%${search_q}%'
+          todo LIKE '%${search_q}%'
           AND priority = '${priority}';
           `;
       break;
     case hasStatusProperty(request.query):
       getToDosQuery = `
           SELECT * FROM todo WHERE 
-          todo Like '%${search_q}%'
+          todo LIKE '%${search_q}%'
           AND status = '${status}';
           `;
       break;
+
+    default:
+      getToDosQuery = `
+          SELECT 
+          * 
+          FROM 
+          todo 
+          WHERE todo LIKE '%${search_q}%'
+          
+          `;
   }
 
   data = await db.all(getToDosQuery);
@@ -127,9 +137,9 @@ app.put("/todos/:todoId/", async (request, response) => {
     UPDATE
       todo
     SET
-        todo=${todo},
-        priority="${priority}",
-        status="${status}"
+        todo='${todo}',
+        priority='${priority}',
+        status='${status}'
     WHERE id= ${todoId} `;
   await db.run(updateToDoQuery);
   response.send(`${updatedColumn} Updated`);
